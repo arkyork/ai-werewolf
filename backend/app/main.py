@@ -1,4 +1,4 @@
-from game.game_en import Game
+from game.game_ja import Game
 
 
 game=Game()
