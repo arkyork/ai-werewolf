@@ -1,0 +1,19 @@
+services:
+  pytorch-vllm:
+    build: .
+    container_name: python-vllm
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    command: tail -f /dev/null
+    ports:
+      - "8000:8000"  
+    environment:
+      - HUGGING_FACE_HUB_TOKEN 
+    deploy:
+      resources:
+          reservations:
+              devices:
+                  - driver: nvidia
+                    count: 1
+                    capabilities: [gpu]

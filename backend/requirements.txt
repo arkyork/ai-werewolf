@@ -1,0 +1,7 @@
+vllm
+transformers
+jupyterlab
+llmcompressor
+autoawq
+levenshtein
+flask
