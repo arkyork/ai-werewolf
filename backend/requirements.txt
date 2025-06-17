@@ -4,3 +4,4 @@ jupyterlab
 llmcompressor
 autoawq
 levenshtein
+flask

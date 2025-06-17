@@ -1,4 +1,5 @@
 from .role import Role
+from .others import fomart_others
 
 class Villager(Role):
     def __str__():
@@ -28,3 +29,24 @@ class Villager(Role):
 
         return messages
         
+    def role_play_pormpt_ja(self,victim):
+        prompt =  (
+                    "以下は人狼ゲームで村人が殺されたときの、他の村人の反応の例です。\n"
+                    "えっ！？なんであの人が……！僕じゃないよ、信じて！\n"
+                    "こ、怖い……ち、違うってば……！私じゃないから……！\n"
+                    f"{victim} が殺された直後の村人としての反応を、1文で出力してください。\n"
+                )
+        
+        return prompt
+
+    def sus_prompt_ja(self,victim,me,kill_reactionss):
+
+        others = fomart_others(kill_reactionss,me)
+        
+        prompt =  (
+            f"あなたは人狼ゲームの参加者です。役割は人狼です。\n"
+            f"以下は村人{victim}が殺されたときの、別の人の反応の例です。\n",
+            others,
+            f"これらの反応から誰が怪しいか感情豊かに出力してください。\n"
+        )
+        return prompt

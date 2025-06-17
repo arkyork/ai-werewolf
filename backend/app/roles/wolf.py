@@ -1,4 +1,7 @@
 from .role import Role
+from .others import fomart_others
+
+
 
 class Wolf(Role):
     def __str__():
@@ -27,4 +30,16 @@ class Wolf(Role):
         ]
 
         return messages
+    def sus_prompt_ja(self,victim,me,kill_reactionss):
 
+        others = fomart_others(kill_reactionss,me)
+
+        prompt =  (
+            f"あなたは人狼ゲームの参加者です。役割は人狼です。\n"
+            f"あなたは人狼として村人{victim}を殺しました。\n",
+            f"以下は村人{victim}が殺されたときの、別の人の反応の例です。\n",
+            others,
+            f"絶対に人狼であるとばれないように村人としてふるまってください。\n",
+            f"これらの反応から感情豊かに誰が怪しいか出力してください。\n"
+        )
+        return prompt

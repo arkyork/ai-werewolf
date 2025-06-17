@@ -5,9 +5,12 @@ from transformers import set_seed
 from roles.wolf import Wolf
 from roles.villager import Villager
 
+from .game_base import GAME
+
+
 set_seed(548)
 
-class Game:
+class Wolf_EN(GAME):
 
 
     def __init__(self):
@@ -49,6 +52,7 @@ class Game:
         
         for name, role in zip(names, roles):
             self.people[name]["role"] = role
+    
     def _assign_models(self):
         names = list(self.people.keys())
         for name in names:
@@ -154,9 +158,8 @@ class Game:
         self._log(
             f"Day {self.day}: 投票の結果 {target} が処刑されました (得票 {max_vote})。"
         )
-
+    # 誰かが殺された後、生存者たちが自分の潔白を主張する反応
     def react_to_death(self, victim: str):
-        """誰かが殺された後、生存者たちが自分の潔白を主張する反応（instruct対応）"""
         alive = self._alive()
         for name in alive:
             model = self.people[name]["model"]
