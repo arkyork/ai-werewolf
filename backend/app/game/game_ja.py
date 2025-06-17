@@ -2,13 +2,14 @@ from vllm import LLM, SamplingParams
 import torch
 
 import random
-from transformers import AutoTokenizer,AutoModelForCausalLM,pipeline
+from transformers import AutoTokenizer
 import Levenshtein
 from transformers import set_seed
 from roles.wolf import Wolf
 from roles.villager import Villager
 
-from .game_base import GAME
+from .game_base import Game
+
 
 
 set_seed(548)
@@ -24,6 +25,7 @@ class Wolf_JA(Game):
         self.sampling = SamplingParams(temperature=0.8,
                                        top_p=0.95,
                                        max_tokens=120)
+        self.tokenizer = AutoTokenizer("elyza/Llama-3-ELYZA-JP-8B-AWQ")
         names = [
             "GPT2",
             "llama3",
@@ -59,8 +61,9 @@ class Wolf_JA(Game):
 
         messages = werewolf_role.role_play_pormpt(candidates)
 
+        prompt = self.tokenizer.apply_chat_template(messages)
         # 出力
-        target = self.llm.generate(messages, self.sampling)[0].outputs[0].text.strip()
+        target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
 
         
         # レーベンシュタイン距離で確実に判定
@@ -78,7 +81,7 @@ class Wolf_JA(Game):
 
         suspect_reaction = self.susupect(target,kill_reactions)  
 
-        return [target,kill_reactions,suspect_reaction]     
+        return [target,self._alive(),kill_reactions,suspect_reaction]     
     
 
 

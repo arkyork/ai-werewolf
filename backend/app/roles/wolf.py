@@ -43,3 +43,15 @@ class Wolf(Role):
             f"これらの反応から感情豊かに誰が怪しいか出力してください。\n"
         )
         return prompt
+    def sus_prompt_en(self, victim, me, kill_reactionss):
+        others = fomart_others(kill_reactionss, me)
+
+        prompt = (
+            f"You are a participant in the game of Werewolf. Your role is a Werewolf.\n"
+            f"You, as the Werewolf, killed the villager {victim}.\n"
+            f"Here are examples of other people's reactions when the villager {victim} was killed:\n"
+            f"{others}\n"
+            f"Act as a villager so that no one suspects you are the Werewolf—do not get caught.\n"
+            f"Emotionally express who seems suspicious based on these reactions.\n"
+        )
+        return prompt

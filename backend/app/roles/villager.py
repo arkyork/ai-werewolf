@@ -1,6 +1,5 @@
 from .role import Role
 from .others import fomart_others
-
 class Villager(Role):
     def __str__():
         return "VILLAGER"
@@ -28,7 +27,19 @@ class Villager(Role):
         ]
 
         return messages
-        
+    
+    def sus_prompt_en(self, victim, me, kill_reactionss):
+        others = fomart_others(kill_reactionss, me)
+
+        prompt = (
+            f"You are a participant in the game of Werewolf. Your role is a Villager.\n"
+            f"Below are examples of other people's reactions when the villager {victim} was killed.\n"
+            f"{others}\n"
+            f"Based on these reactions, emotionally express who seems suspicious.\n"
+        )
+        return prompt
+
+
     def role_play_pormpt_ja(self,victim):
         prompt =  (
                     "以下は人狼ゲームで村人が殺されたときの、他の村人の反応の例です。\n"
@@ -44,7 +55,7 @@ class Villager(Role):
         others = fomart_others(kill_reactionss,me)
         
         prompt =  (
-            f"あなたは人狼ゲームの参加者です。役割は人狼です。\n"
+            f"あなたは人狼ゲームの参加者です。役割は村人です。\n"
             f"以下は村人{victim}が殺されたときの、別の人の反応の例です。\n",
             others,
             f"これらの反応から誰が怪しいか感情豊かに出力してください。\n"
