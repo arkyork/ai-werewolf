@@ -150,7 +150,7 @@ class Wolf_EN(Game):
 
             role = self.people[name]["role"]
 
-            prompt = role.react_prompt(victim)
+            prompt = role.react_prompt_en(victim)
 
 
             generator = pipeline("text-generation", model=model, tokenizer=tokenizer)

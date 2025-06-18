@@ -18,14 +18,13 @@ set_seed(548)
 
 class Wolf_JA(Game):
 
-
     def __init__(self):
 
         self.llm = LLM(model="elyza/Llama-3-ELYZA-JP-8B-AWQ")  
         self.sampling = SamplingParams(temperature=0.8,
                                        top_p=0.95,
                                        max_tokens=120)
-        self.tokenizer = AutoTokenizer("elyza/Llama-3-ELYZA-JP-8B-AWQ")
+        self.tokenizer = AutoTokenizer.from_pretrained("elyza/Llama-3-ELYZA-JP-8B-AWQ")
         names = [
             "GPT2",
             "llama3",
@@ -41,7 +40,7 @@ class Wolf_JA(Game):
         self._assign_roles()
         print("人狼：",self._wolves())
 
-
+    # ロールの割り当て
     def _assign_roles(self):
         names = list(self.people.keys())
         
@@ -61,7 +60,7 @@ class Wolf_JA(Game):
 
         messages = werewolf_role.role_play_pormpt(candidates)
 
-        prompt = self.tokenizer.apply_chat_template(messages)
+        prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)  # これで文字列になる
         # 出力
         target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
 
@@ -90,7 +89,7 @@ class Wolf_JA(Game):
     def react_to_death(self, victim: str):
         alive = self._alive()
         # ★生存者分まとめてバッチ生成
-        prompts = [self.people[n]["role"].react_prompt(victim) for n in alive]
+        prompts = [self.people[n]["role"].react_prompt_ja(victim) for n in alive]
         results = self.llm.generate(prompts, self.sampling)
 
         # save reactions by dictionary
@@ -109,7 +108,7 @@ class Wolf_JA(Game):
 
 
         # 生存者分まとめて生成
-        prompts = [self.people[n]["role"].sus_prompt(victim,n,kill_reactions) for n in alive]
+        prompts = [self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions) for n in alive]
         results = self.llm.generate(prompts, self.sampling)
         
         # save reactions by dictionary
