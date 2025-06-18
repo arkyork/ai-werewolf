@@ -7,14 +7,10 @@ import Levenshtein
 from transformers import set_seed
 from roles.wolf import Wolf
 from roles.villager import Villager
+from roles.seer import Seer
+from roles.madman import Madman
 
 from .game_base import Game
-
-
-
-set_seed(548)
-
-
 
 class Wolf_JA(Game):
 
@@ -26,12 +22,14 @@ class Wolf_JA(Game):
                                        max_tokens=120)
         self.tokenizer = AutoTokenizer.from_pretrained("elyza/Llama-3-ELYZA-JP-8B-AWQ")
         names = [
-            "GPT2",
+            "llama-3.1",
+            "Llama-3.2",
             "llama3",
             "tinyllama",
             "Mistral",
             "DeepSeek",
             "gemma",
+            "Phi-4",
         ]
         self.people = {n: {"role": None, "alive": True} for n in names}
         self.day = 0 
@@ -39,12 +37,13 @@ class Wolf_JA(Game):
 
         self._assign_roles()
         print("人狼：",self._wolves())
+        print("人狼：",self._seer())
 
     # ロールの割り当て
     def _assign_roles(self):
         names = list(self.people.keys())
         
-        roles = [Wolf()] + [Villager()] * (len(names) - 1)
+        roles = [Wolf()] + [Madman()] + [Seer()] + [Villager()] * (len(names) - 3) 
         
         random.shuffle(roles)
         
@@ -66,21 +65,48 @@ class Wolf_JA(Game):
 
         
         # レーベンシュタイン距離で確実に判定
-        target = self.lenven(target)
+        victim = self.lenven(target)
         
-        if self.people[target]["alive"]:
-            self.people[target]["alive"] = False
-            self._log(f"Night {self.day}: {target} が死亡しました。")
+
+        
+        if victim == "":
+            victim = "None"
+
+        if self.people[victim]["alive"]:
+            self.people[victim]["alive"] = False
+            self._log(f"Night {self.day}: {victim} が死亡しました。")
             self.day += 1
         
+        # 占い師
+        seer_name  = self._seer()[0]
+        seer_role = self.people[seer_name]["role"]
+
+        if self.people[seer_name]["alive"] == True:
+            messages = seer_role.role_play_pormpt(candidates,seer_name)
+
+            prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)  # これで文字列になる
+            # 出力
+            target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
+
+            target = self.lenven(target)
+
+
+            if target == "":
+                divine_role = "失敗"
+            else:
+                divine_role = target + " -> " + str(self.people[target]["role"])
+        else:
+            divine_role = ""
+            
+
         # killされた反応
-        kill_reactions = self.react_to_death(target)  
+        kill_reactions = self.react_to_death(victim)  
 
         # sus 誰が怪しい
 
-        suspect_reaction = self.susupect(target,kill_reactions)  
+        suspect_reaction = self.susupect(victim,kill_reactions)  
 
-        return [target,self._alive(),kill_reactions,suspect_reaction]     
+        return [victim,self._alive(),kill_reactions,suspect_reaction,divine_role]     
     
 
 

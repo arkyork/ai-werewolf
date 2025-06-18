@@ -7,12 +7,34 @@ import Levenshtein
 from transformers import set_seed
 from roles.wolf import Wolf
 from roles.villager import Villager
+from roles.seer import Seer
 
 
 set_seed(548)
 
 class Game:
-
+    
+    # 今生きている人
+    def _alive(self):
+        return [name for name, data in self.people.items() if data["alive"]]
+    # 人狼の人
+    def _wolves(self):
+        return [n for n in self._alive() if isinstance(self.people[n]["role"],Wolf)]
+        # 今生きている人
+    def _seer(self):
+        return [n for n in self._alive() if isinstance(self.people[n]["role"],Seer)]
+    # 村人の人
+    def _villagers(self):
+        return [n for n in self._alive() if isinstance(self.people[n]["role"],Villager)]
+    
+    def _log(self, message: str):
+        #print(message)
+        self.history.append(message)
+    
+    def _history(self):
+        for history in self.history:
+            print(history)    
+    
     #レーベンシュタイン距離で編集距離を計算
     def lenven(self,target):
         names = self._villagers()
@@ -25,35 +47,6 @@ class Game:
                 max_score = similarity
         return max_name
 
-
-    def _assign_roles(self):
-        names = list(self.people.keys())
-        
-        roles = [Wolf()] + [Villager()] * (len(names) - 1)
-        
-        random.shuffle(roles)
-        
-        for name, role in zip(names, roles):
-            self.people[name]["role"] = role    
-    
-    # 今生きている人
-    def _alive(self):
-        return [name for name, data in self.people.items() if data["alive"]]
-    # 人狼の人
-    def _wolves(self):
-        return [n for n in self._alive() if isinstance(self.people[n]["role"],Wolf)]
-    # 村人の人
-    def _villagers(self):
-        return [n for n in self._alive() if isinstance(self.people[n]["role"],Villager)]
-    
-    def _log(self, message: str):
-        print(message)
-        self.history.append(message)
-    
-    def _history(self):
-        for history in self.history:
-            print(history)    
-    
     # 投票処理
     def vote(self):
         alive = self._alive()

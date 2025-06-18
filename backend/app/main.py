@@ -70,6 +70,7 @@ def kill():
         "alive":data[1],
         "kill_reactions":data[2],
         "sus_reactions":data[3],
+        "divine_role":data[4]
 
     }
 
@@ -79,6 +80,8 @@ def kill():
 def vote_kill():
     name=request.args.get("name")
     game.vote_kill(name)
+
+    return jsonify({"message":name+"が投票で死にました。"})
 
 
 if __name__ == "__main__":
