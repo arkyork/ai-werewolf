@@ -4,6 +4,8 @@ import Levenshtein
 from transformers import set_seed
 from roles.wolf import Wolf
 from roles.villager import Villager
+from roles.seer import Seer
+from roles.madman import Madman
 
 from .game_base import Game
 
@@ -15,12 +17,14 @@ class Wolf_EN(Game):
 
     def __init__(self):
         names = [
-            "GPT2",
-            "llama3",
+            "Llama-3.1",
+            "Llama-3.2",
+            "Llama3",
             "tinyllama",
             "Mistral",
             "DeepSeek",
             "gemma",
+            "Phi-4",
         ]
         self.people = {name: {"role": None, "alive": True,"model":None,"tokenizer":None} for name in names}
         self.day = 0 
@@ -46,7 +50,7 @@ class Wolf_EN(Game):
     def _assign_roles(self):
         names = list(self.people.keys())
         
-        roles = [Wolf()] + [Villager()] * (len(names) - 1)
+        roles = [Wolf()] +[Madman()]+[Seer()] + [Villager()] * (len(names) - 3)
         
         random.shuffle(roles)
         
@@ -62,19 +66,27 @@ class Wolf_EN(Game):
                 self.people[name]["model"] = model
                 self.people[name]["tokenizer"] = tokenizer
 
-            if name == "llama3":
+            if name == "Llama3":
+                tokenizer = AutoTokenizer.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ")
+                model = AutoModelForCausalLM.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ",device_map="auto")
+                self.people[name]["model"] = model
+                self.people[name]["tokenizer"] = tokenizer
+
+            if name == "Llama3.1":
+                tokenizer = AutoTokenizer.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ")
+                model = AutoModelForCausalLM.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ",device_map="auto")
+                self.people[name]["model"] = model
+                self.people[name]["tokenizer"] = tokenizer
+
+            if name == "Llama3.2":
                 tokenizer = AutoTokenizer.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ")
                 model = AutoModelForCausalLM.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ",device_map="auto")
                 self.people[name]["model"] = model
                 self.people[name]["tokenizer"] = tokenizer
 
             if name == "tinyllama":
-                tokenizer = AutoTokenizer.from_pretrained("TheBloke/TinyLlama-1.1B-Chat-v0.3-AWQ")
-                tokenizer.chat_template = (
-                    "<|system|>\n{system_message}</s>\n"
-                    "<|user|>\n{prompt}</s>\n"
-                    "<|assistant|>\n"
-                )
+                tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
                 model = AutoModelForCausalLM.from_pretrained("TheBloke/TinyLlama-1.1B-Chat-v0.3-AWQ",device_map="auto")
                 self.people[name]["model"] = model
                 self.people[name]["tokenizer"] = tokenizer          
@@ -97,6 +109,17 @@ class Wolf_EN(Game):
                 model = AutoModelForCausalLM.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ",device_map="auto")
                 self.people[name]["model"] = model
                 self.people[name]["tokenizer"] = tokenizer          
+
+            if name == "Phi-4":
+                #tokenizer = AutoTokenizer.from_pretrained("stelterlab/phi-4-AWQ")
+                #model = AutoModelForCausalLM.from_pretrained("stelterlab/phi-4-AWQ")
+                tokenizer = AutoTokenizer.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ")
+                model = AutoModelForCausalLM.from_pretrained("AMead10/Llama-3.2-1B-Instruct-AWQ",device_map="auto")
+
+                self.people[name]["model"] = model
+                self.people[name]["tokenizer"] = tokenizer   
+
+
     
     def kill(self):
         # Killの準備
@@ -113,25 +136,48 @@ class Wolf_EN(Game):
 
         # 出力
         result = generator(messages, do_sample=True, max_new_tokens=10)
-        target = result[0]["generated_text"][-1]["content"].strip()
+        victim = result[0]["generated_text"][-1]["content"].strip()
         
         # レーベンシュタイン距離で確実に判定
-        target = self.lenven(target)
+        victim = self.lenven(victim)
         
-        if self.people[target]["alive"]:
-            self.people[target]["alive"] = False
-            self._log(f"Night {self.day}: {target} が死亡しました。")
+
+        if self.people[victim]["alive"]:
+            self.people[victim]["alive"] = False
+            self._log(f"Night {self.day}: {victim} が死亡しました。")
             self.day += 1
 
-        
-                # killされた反応
-        kill_reactions = self.react_to_death(target)  
+        # 占い師
+        seer_name  = self._seer()[0]
+        seer_role = self.people[seer_name]["role"]
+
+        if self.people[seer_name]["alive"] == True:
+            messages = seer_role.role_play_pormpt(candidates,seer_name)
+            model = self.people[seer_name]["model"]
+            tokenizer = self.people[seer_name]["tokenizer"]
+            generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+            
+            result = generator(messages, do_sample=True, max_new_tokens=10)
+            # 出力
+            target = result[0]["generated_text"][-1]["content"].strip()
+
+            target = self.lenven(target)
+
+
+            if target == "":
+                divine_role = "失敗"
+            else:
+                divine_role = target + " -> " + str(self.people[target]["role"])
+        else:
+            divine_role = ""
+        # killされた反応
+        kill_reactions = self.react_to_death(victim)  
 
         # sus 誰が怪しい
 
-        suspect_reaction = self.susupect(target,kill_reactions) 
+        suspect_reaction = self.susupect(victim,kill_reactions) 
         
-        return [target,self._alive(),kill_reactions,suspect_reaction]     
+        return [victim,self._alive(),kill_reactions,suspect_reaction,divine_role]     
 
 
     # 誰かが殺された後、生存者たちが自分の潔白を主張する反応

@@ -22,7 +22,9 @@ def get_reaction():
             "tinyllama": "gemmaの反応が最も怪しいと感じます。「助けて」「怖い」「許さない」といった強い感情が矛盾を含み、自身が関与している可能性があります。",
             "DeepSeek": "関係性:\n- GPT2とMistralは旧友\n- llama3とMistralは同級生\n- tinyllamaとMistralは同級生\n- gemmaとMistralは隣人",
             "gemma": "人狼は自分がばれないように振る舞います。反応は恐怖や動揺を示すが、誰が怪しいかはわかりません。"
-        }
+        },
+        "divine_role":"llama-3.1 -> VILLAGER"
+       
     }
     return jsonify(data)
 @app.route("/start", methods=["GET"])
@@ -51,7 +53,7 @@ def start():
     },
     "tinyllama": {
         "alive": True,
-        "role": "VILLAGER"
+        "role": "SEER"
     }
     }
     return jsonify(data)
