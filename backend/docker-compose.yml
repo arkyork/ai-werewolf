@@ -8,6 +8,7 @@ services:
     command: tail -f /dev/null
     ports:
       - "8000:8000"  
+      - "5000:5000"
     environment:
       - HUGGING_FACE_HUB_TOKEN 
     deploy:

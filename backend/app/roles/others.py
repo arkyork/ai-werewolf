@@ -1,7 +1,7 @@
 def fomart_others(others,me):
     message = ""
-    for other in others:
-        if other["name"] == me:
+    for key,value in others.items():
+        if me == key:
             continue
-        message += other["name"]+"の反応："
+        message += key +"の反応："+value
     return message
