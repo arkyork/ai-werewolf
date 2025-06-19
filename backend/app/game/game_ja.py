@@ -9,6 +9,10 @@ from roles.wolf import Wolf
 from roles.villager import Villager
 from roles.seer import Seer
 from roles.madman import Madman
+from roles.knight import Knight
+from roles.fox import Fox
+from roles.medium import Medium
+from roles.baker import Baker
 
 from .game_base import Game
 
@@ -20,24 +24,18 @@ class Wolf_JA(Game):
         self.sampling = SamplingParams(temperature=0.8,
                                        top_p=0.95,
                                        max_tokens=120)
+        self.role_sampling = SamplingParams(temperature=0.8,
+                                top_p=0.92,
+                                max_tokens=40)
         self.tokenizer = AutoTokenizer.from_pretrained("elyza/Llama-3-ELYZA-JP-8B-AWQ")
-        names = [
-            "llama-3.1",
-            "Llama-3.2",
-            "llama3",
-            "tinyllama",
-            "Mistral",
-            "DeepSeek",
-            "gemma",
-            "Phi-4",
-        ]
+        
+        names = ["たろう", "じろう", "さぶろう", "しんじ", "けんた", "ゆうこ", "あかね", "みさき", "りょう", "はるか"]
+
         self.people = {n: {"role": None, "alive": True} for n in names}
         self.day = 0 
         self.history: list[str] = []  # for logging events in order
 
         self._assign_roles()
-        print("人狼：",self._wolves())
-        print("人狼：",self._seer())
 
     # ロールの割り当て
     def _assign_roles(self):
@@ -45,21 +43,58 @@ class Wolf_JA(Game):
         
         assign ={
             "wolf" : random.randint(1,2),
-            "seer" : random.randint(0,1),
-            "madman" : random.randint(0,1),
+            "seer" : 1,
+            "madman" : 1,
+            "knight" : 1,
+            "baker" : 1,
+            "medium" : 1,
+            "fox" : 1,
+
         }
         role_num = sum([value for key,value in assign.items()])
         # 役割
-        roles = [Wolf()]*assign["wolf"] + [Madman()]*assign["madman"] + [Seer()]*assign["seer"] + [Villager()] * (len(names) - role_num) 
+        roles = [Knight()]*assign["knight"]+[Fox()]*assign["fox"]+[Baker()]*assign["baker"]+[Medium()]*assign["medium"]+[Wolf()]*assign["wolf"] + [Madman()]*assign["madman"] + [Seer()]*assign["seer"] + [Villager()] * (len(names) - role_num) 
         
         random.shuffle(roles)
         
         for name, role in zip(names, roles):
             self.people[name]["role"] = role    
     
-
-    def kill(self):
+    def seer_play(self):
+        candidates = self._alive()
         
+        divine_role = ""
+        # 占い師
+        for seer_name in  self._seer():
+            seer_role = self.people[seer_name]["role"]
+
+            if self.people[seer_name]["alive"] == True:
+                prompt = seer_role.role_play_prompt_ja(candidates,seer_name)
+
+
+
+                output = self.llm.generate(prompt, self.role_sampling)
+
+                target = output[0].outputs[0].text.strip()
+
+
+                target = self.lenven(target)
+
+
+
+
+                if target == "":
+                    divine_role = "失敗"
+                elif  str(self.people[target]["role"]) == "FOX":
+                    self.people[target]["alive"] = False
+                    divine_role = target + " -> VILLAGER"
+                else:
+                    divine_role = target + " -> " + str(self.people[target]["role"])
+            else:
+                divine_role = ""
+        
+        return divine_role
+    def wolf_play(self,protected):
         # Killされる候補
         candidates = self._not_wolves()
         
@@ -70,49 +105,102 @@ class Wolf_JA(Game):
         for werewolf_name in self._wolves():
             werewolf_role = self.people[werewolf_name]["role"]
 
-            messages = werewolf_role.role_play_pormpt(candidates)
+            prompt = werewolf_role.role_play_prompt_ja(candidates)
 
             # プロンプト
-            prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)  
-            # 出力
-            target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
-
+            target = self.llm.generate(prompt, self.role_sampling)[0].outputs[0].text.strip()
             
             # レーベンシュタイン距離で確実に判定
             victim = self.lenven(target)
-            
-            if victim == "":
-                victim = "None"
+
+            if victim in protected:
+                self._log(f"Night day {self.day}:  {werewolf_name}は{victim} をねらっていたようだ。")
+                self._log(f"Night day {self.day}: {victim} は騎士によって守られた")
+                
+                continue
 
             # killの動作
             if self.people[victim]["alive"]:
                 self.people[victim]["alive"] = False
-                self._log(f"Night {self.day}: {victim} が死亡しました。")
+                self._log(f"Night day {self.day}:  {werewolf_name}によって {victim} が死亡しました。")
             
             # 被害者の追加
             victims.append(victim)
+        return victims
+    def baker_play(self):
+        # パンやの処理
+        breads_num = 0
+        for baker in self._bakers():
+            breads_num += 1
+
+        return breads_num
+    def medium_play(self):
+        # killされた人
+        candidates = self._not_alive()
         
-        # 占い師
-        seer_name  = self._seer()[0]
-        seer_role = self.people[seer_name]["role"]
+        die_role = ""
+        # 霊媒師
+        for medium_name in  self._medium():
+            medium_role = self.people[medium_name]["role"]
 
-        if self.people[seer_name]["alive"] == True:
-            messages = seer_role.role_play_pormpt(candidates,seer_name)
+            if self.people[medium_name]["alive"] == True:
+                prompt = medium_role.role_play_prompt_ja(candidates)
 
-            prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)  # これで文字列になる
+                # 出力
+                target = self.llm.generate(prompt, self.role_sampling)[0].outputs[0].text.strip()
+                target = self.lenven(target)
+
+
+
+
+                if target == "":
+                    die_role = "失敗"
+                elif  str(self.people[target]["role"]) == "FOX":
+                    self.people[target]["alive"] = False
+                    die_role = target + " -> VILLAGER"
+                else:
+                    die_role = target + " -> " + str(self.people[target]["role"])
+            else:
+                die_role = ""
+        return die_role
+    
+    def knight_play(self):
+        # Killされる候補
+        candidates = self._alive()
+        
+        protected = []
+        
+        # 人狼によるkill
+        for knight_name in self._knights():
+            knight_role = self.people[knight_name]["role"]
+
+            prompt = knight_role.role_play_prompt_ja(candidates,knight_name)
             # 出力
             target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
-
-            target = self.lenven(target)
-
-
-            if target == "":
-                divine_role = "失敗"
-            else:
-                divine_role = target + " -> " + str(self.people[target]["role"])
-        else:
-            divine_role = ""
             
+            
+            # レーベンシュタイン距離で確実に判定
+            protect_name = self.lenven(target)
+            
+            # 被害者の追加
+            protected.append(protect_name)
+
+            self._log(f"{knight_name}は{protect_name}を守った")
+        
+        return protected
+    
+    def kill(self):
+
+        protected = self.knight_play()
+        
+        victims = self.wolf_play(protected)
+        victim = ",".join(victims)
+        
+        divine_role = self.seer_play()
+        
+        breads_num = self.baker_play()
+
+        die_role = self.medium_play()
 
         # killされた反応
         kill_reactions = self.react_to_death(victim)  
@@ -121,9 +209,22 @@ class Wolf_JA(Game):
 
         suspect_reaction = self.susupect(victim,kill_reactions)  
         
-        self.day += 1
 
-        return [victims,self._alive(),kill_reactions,suspect_reaction,divine_role]     
+        self.day += 1
+        
+        data={
+            "victim":victims,
+            "alive":self._alive(),
+            "kill_reactions":kill_reactions,
+            "sus_reactions":suspect_reaction,
+            "divine_role":divine_role,
+            "bread_num":breads_num,
+            "die_role":die_role
+        }
+
+        self._history()
+
+        return data    
     
 
 
@@ -142,7 +243,7 @@ class Wolf_JA(Game):
             
             all_reactions[name] = line
 
-            self._log(f"{name} の反応: 「{line}」")
+            #self._log(f"{name} の反応: 「{line}」")
 
         return all_reactions
 
@@ -162,6 +263,6 @@ class Wolf_JA(Game):
             
             all_reactions[name] = line
 
-            self._log(f"{name} の反応: 「{line}」")
+            #self._log(f"{name} の反応: 「{line}」")
         
         return all_reactions

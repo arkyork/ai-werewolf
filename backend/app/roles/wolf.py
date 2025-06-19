@@ -1,11 +1,11 @@
 from .role import Role
-from .others import fomart_others
+from .align_format import fomart_others
 
 class Wolf(Role):
     def __str__(self):
         return "WEREWOLF"
     
-    def role_play_pormpt(self,candidates):
+    def role_play_prompt(self,candidates):
 
         messages = [
             {
@@ -22,6 +22,18 @@ class Wolf(Role):
         ]
 
         return messages
+    def role_play_prompt_ja(self, candidates):
+
+        prompt = (
+            "あなたは人狼ゲームにおける『人狼』です。\n"
+            "今夜、あなたは以下の人物の中から1人を襲撃してください：\n"
+            f"{', '.join(candidates)}\n"
+            "候補者の名前のみを返信してください。理由やその他のテキストは書かないでください。"
+        )
+
+        return prompt
+
+
     def react_prompt_en(self,victim):
         prompt = (
             f"You are a villager in the game Werewolf. One of your fellow villagers, {victim}, has just been killed. React in a single natural sentence, as if you were a real person in panic. Don't explain or analyze—just react emotionally as a scared villager.\n"

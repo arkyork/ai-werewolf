@@ -132,7 +132,7 @@ class Wolf_EN(Game):
         tokenizer = self.people[werewolf_name]["tokenizer"]
         generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
-        messages = werewolf_role.role_play_pormpt(candidates)
+        messages = werewolf_role.role_play_prompt(candidates)
 
         # 出力
         result = generator(messages, do_sample=True, max_new_tokens=10)
@@ -152,7 +152,7 @@ class Wolf_EN(Game):
         seer_role = self.people[seer_name]["role"]
 
         if self.people[seer_name]["alive"] == True:
-            messages = seer_role.role_play_pormpt(candidates,seer_name)
+            messages = seer_role.role_play_prompt(candidates,seer_name)
             model = self.people[seer_name]["model"]
             tokenizer = self.people[seer_name]["tokenizer"]
             generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
