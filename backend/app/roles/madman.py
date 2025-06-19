@@ -1,12 +1,12 @@
 from .role import Role
-from .others import fomart_others
+from .align_format import fomart_others
 
 class Madman(Role):
     def __str__(self):
         return "MADMAN"
 
-    def role_play_pormpt(self):
-        pass  # 今は必要ない場合は空のままでOKです
+    def role_play_prompt(self):
+        pass  
 
     def react_prompt_en(self, victim):
         prompt = (

@@ -12,7 +12,7 @@ class Role(metaclass = ABCMeta):
     def react_prompt_en(self):
         pass
     @abstractclassmethod
-    def role_play_pormpt(self):
+    def role_play_prompt(self):
         pass
     @abstractclassmethod
     def sus_prompt_ja(self):

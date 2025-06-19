@@ -7,54 +7,79 @@ app = Flask(__name__)
 @app.route("/kill", methods=["GET"])
 def get_reaction():
     data = {
-        "victim": "Mistral",
-        "alive": ["GPT2", "llama3", "tinyllama", "DeepSeek", "gemma"],
-        "kill_reactions": {
-            "GPT2": "えっ！？なんであの人が……！僕じゃないよ、信じて！",
-            "llama3": "えっ！？なんであの人が……！僕じゃないよ、信じて！",
-            "tinyllama": "えっ！？なんであの人……！僕じゃないよ、信じて！",
-            "DeepSeek": "え、嘘でしょ…Mistralさんが…村人としての反応に基づき、基本的に嘘や疑いを否定する、恐怖や動揺を表すというのを踏まえました。",
-            "gemma": "あぁあぁあぁあ、嘘でしょ！なんで、Mistralが！？なんでこんなことになっちゃったの！？助けて、助けてください！怖い、怖い、怖い！Mistralが殺された！これから私たちが殺される！村人同士の争いなんて、知らない！知りたくない！助けて、誰か！この子を殺した人を 、許さない！許さないよ！なんで、Mistralが！？なんで！？うわぁ"
-        },
-        "sus_reactions": {
-            "GPT2": "反応の特徴：\n- 基本的に嘘や疑いを否定する\n- 恐怖や動揺を表す\n- 状況に混乱し、パニック状態になる",
-            "llama3": "gemmaが怪しいです。理由は、gemmaの反応が明らかにパニック状態で、恐怖や動揺を表しています。通常、村人同士の争いは知りたくない、許さないという反応は不自然です。",
-            "tinyllama": "gemmaの反応が最も怪しいと感じます。「助けて」「怖い」「許さない」といった強い感情が矛盾を含み、自身が関与している可能性があります。",
-            "DeepSeek": "関係性:\n- GPT2とMistralは旧友\n- llama3とMistralは同級生\n- tinyllamaとMistralは同級生\n- gemmaとMistralは隣人",
-            "gemma": "人狼は自分がばれないように振る舞います。反応は恐怖や動揺を示すが、誰が怪しいかはわかりません。"
-        },
-        "divine_role":"llama-3.1 -> VILLAGER"
-       
-    }
+    "alive": [
+        "さぶろう", "しんじ", "けんた", "ゆうこ",
+        "あかね", "みさき", "りょう", "はるか"
+    ],
+    "bread_num": 1,
+    "die_role": "llama-3.1 -> VILLAGER",
+    "divine_role": "失敗",
+    "kill_reactions": {
+        "あかね": "あああ、神様、嘘でしょ?!なんで、 なんで！なんでウテイが殺されなきゃならないの?!...",
+        "けんた": "わあああ、誰がやったの?!なんで、 なんで殺されたの?!...",
+        "さぶろう": "「嘘つきが殺された！」村人Aが叫んだ。...",
+        "しんじ": "「うそでしょ……なんで、たかしさんが……」",
+        "はるか": "「なんで、また殺されたの?!もう、信じられない!!」",
+        "みさき": "「ひっ、まさか、まさかだよ、信じられない、誰がこんな酷いことするの⁉」",
+        "ゆうこ": "憎い！憎い！なぜ！なぜ殺された！なぜ！なぜ！許せない！...",
+    },
+    "sus_reactions": {
+        "あかね": "けんたとゆうこが感情的に怪しいと判断できます。...",
+        "けんた": "あなたは人狼です。以下、反応から感情豊かに誰が怪しいか出力します。...",
+        "さぶろう": "しんじの反応は、感情が表面に出ており...",
+        "しんじ": "ゆうこが怪しいと出力されました。...",
+        "はるか": "※あくまで感情的に判断しています...",
+        "みさき": "けんたの反応が一番怪しいと感じます。...",
+        "ゆうこ": "けんたは非常に感情的に反応しています。...",
+    },
+    "victim": ["りょう"]
+}
+
     return jsonify(data)
 @app.route("/start", methods=["GET"])
 def start():
 
     data = {
-    "DeepSeek": {
-        "alive": True,
-        "role": "VILLAGER"
-    },
-    "GPT2": {
-        "alive": True,
-        "role": "VILLAGER"
-    },
-    "Mistral": {
-        "alive": True,
-        "role": "WEREWOLF"
-    },
-    "gemma": {
-        "alive": True,
-        "role": "VILLAGER"
-    },
-    "llama3": {
-        "alive": True,
-        "role": "VILLAGER"
-    },
-    "tinyllama": {
-        "alive": True,
-        "role": "SEER"
-    }
+        "あかね": {
+            "alive": True,
+            "role": "SEER"
+        },
+        "けんた": {
+            "alive": True,
+            "role": "WEREWOLF"
+        },
+        "さぶろう": {
+            "alive": True,
+            "role": "FOX"
+        },
+        "しんじ": {
+            "alive": True,
+            "role": "BAKER"
+        },
+        "じろう": {
+            "alive": True,
+            "role": "VILLAGER"
+        },
+        "たろう": {
+            "alive": True,
+            "role": "VILLAGER"
+        },
+        "はるか": {
+            "alive": True,
+            "role": "MADMAN"
+        },
+        "みさき": {
+            "alive": True,
+            "role": "WEREWOLF"
+        },
+        "ゆうこ": {
+            "alive": True,
+            "role": "MEDIUM"
+        },
+        "りょう": {
+            "alive": True,
+            "role": "KNIGHT"
+        }
     }
     return jsonify(data)
 
