@@ -43,7 +43,14 @@ class Wolf_JA(Game):
     def _assign_roles(self):
         names = list(self.people.keys())
         
-        roles = [Wolf()] + [Madman()] + [Seer()] + [Villager()] * (len(names) - 3) 
+        assign ={
+            "wolf" : random.randint(1,2),
+            "seer" : random.randint(0,1),
+            "madman" : random.randint(0,1),
+        }
+        role_num = sum([value for key,value in assign.items()])
+        # 役割
+        roles = [Wolf()]*assign["wolf"] + [Madman()]*assign["madman"] + [Seer()]*assign["seer"] + [Villager()] * (len(names) - role_num) 
         
         random.shuffle(roles)
         
@@ -52,30 +59,38 @@ class Wolf_JA(Game):
     
 
     def kill(self):
-        # Killの準備
-        candidates = self._alive()
-        werewolf_name  = self._wolves()[0] #人狼
-        werewolf_role = self.people[werewolf_name]["role"]
-
-        messages = werewolf_role.role_play_pormpt(candidates)
-
-        prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)  # これで文字列になる
-        # 出力
-        target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
-
         
-        # レーベンシュタイン距離で確実に判定
-        victim = self.lenven(target)
+        # Killされる候補
+        candidates = self._not_wolves()
         
-
+        #被害者たち
+        victims = []
         
-        if victim == "":
-            victim = "None"
+        # 人狼によるkill
+        for werewolf_name in self._wolves():
+            werewolf_role = self.people[werewolf_name]["role"]
 
-        if self.people[victim]["alive"]:
-            self.people[victim]["alive"] = False
-            self._log(f"Night {self.day}: {victim} が死亡しました。")
-            self.day += 1
+            messages = werewolf_role.role_play_pormpt(candidates)
+
+            # プロンプト
+            prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)  
+            # 出力
+            target = self.llm.generate(prompt, self.sampling)[0].outputs[0].text.strip()
+
+            
+            # レーベンシュタイン距離で確実に判定
+            victim = self.lenven(target)
+            
+            if victim == "":
+                victim = "None"
+
+            # killの動作
+            if self.people[victim]["alive"]:
+                self.people[victim]["alive"] = False
+                self._log(f"Night {self.day}: {victim} が死亡しました。")
+            
+            # 被害者の追加
+            victims.append(victim)
         
         # 占い師
         seer_name  = self._seer()[0]
@@ -105,8 +120,10 @@ class Wolf_JA(Game):
         # sus 誰が怪しい
 
         suspect_reaction = self.susupect(victim,kill_reactions)  
+        
+        self.day += 1
 
-        return [victim,self._alive(),kill_reactions,suspect_reaction,divine_role]     
+        return [victims,self._alive(),kill_reactions,suspect_reaction,divine_role]     
     
 
 
