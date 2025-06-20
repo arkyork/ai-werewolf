@@ -1,22 +1,22 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\werewolf\\front\\",
+  "WorkspaceRootPath": "D:\\ai-werewolf\\front\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|d:\\werewolf\\front\\assets\\scripts\\wolf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|d:\\ai-werewolf\\front\\assets\\scripts\\wolf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\wolf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|D:\\werewolf\\front\\assets\\scripts\\persondata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|D:\\ai-werewolf\\front\\assets\\scripts\\backup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\backup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|D:\\ai-werewolf\\front\\assets\\scripts\\persondata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\persondata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|D:\\werewolf\\front\\assets\\scripts\\peersonmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|D:\\ai-werewolf\\front\\assets\\scripts\\peersonmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\peersonmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|D:\\werewolf\\front\\assets\\scripts\\backup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E172F0F1-D913-9E27-AA38-F02C7559EF36}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\backup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,13 +30,13 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "Backup.cs",
-              "DocumentMoniker": "D:\\werewolf\\front\\Assets\\scripts\\Backup.cs",
+              "DocumentMoniker": "D:\\ai-werewolf\\front\\Assets\\scripts\\Backup.cs",
               "RelativeDocumentMoniker": "Assets\\scripts\\Backup.cs",
-              "ToolTip": "D:\\werewolf\\front\\Assets\\scripts\\Backup.cs",
+              "ToolTip": "D:\\ai-werewolf\\front\\Assets\\scripts\\Backup.cs",
               "RelativeToolTip": "Assets\\scripts\\Backup.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAVAAAA",
+              "ViewState": "AQIAAN4AAAAAAAAAAAAAwOYAAAAHAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-19T04:05:03.433Z"
             },
@@ -44,22 +44,22 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Wolf.cs",
-              "DocumentMoniker": "D:\\werewolf\\front\\Assets\\scripts\\Wolf.cs",
+              "DocumentMoniker": "D:\\ai-werewolf\\front\\Assets\\scripts\\Wolf.cs",
               "RelativeDocumentMoniker": "Assets\\scripts\\Wolf.cs",
-              "ToolTip": "D:\\werewolf\\front\\Assets\\scripts\\Wolf.cs",
+              "ToolTip": "D:\\ai-werewolf\\front\\Assets\\scripts\\Wolf.cs",
               "RelativeToolTip": "Assets\\scripts\\Wolf.cs",
-              "ViewState": "AQIAAIQAAAAAAAAAAAAiwBoAAAAYAAAA",
+              "ViewState": "AQIAAGcAAAAAAAAAAAAUwAkBAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-18T09:11:06.852Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "PersonData.cs",
-              "DocumentMoniker": "D:\\werewolf\\front\\Assets\\scripts\\PersonData.cs",
+              "DocumentMoniker": "D:\\ai-werewolf\\front\\Assets\\scripts\\PersonData.cs",
               "RelativeDocumentMoniker": "Assets\\scripts\\PersonData.cs",
-              "ToolTip": "D:\\werewolf\\front\\Assets\\scripts\\PersonData.cs",
+              "ToolTip": "D:\\ai-werewolf\\front\\Assets\\scripts\\PersonData.cs",
               "RelativeToolTip": "Assets\\scripts\\PersonData.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -67,11 +67,11 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "PeersonModel.cs",
-              "DocumentMoniker": "D:\\werewolf\\front\\Assets\\scripts\\PeersonModel.cs",
+              "DocumentMoniker": "D:\\ai-werewolf\\front\\Assets\\scripts\\PeersonModel.cs",
               "RelativeDocumentMoniker": "Assets\\scripts\\PeersonModel.cs",
-              "ToolTip": "D:\\werewolf\\front\\Assets\\scripts\\PeersonModel.cs",
+              "ToolTip": "D:\\ai-werewolf\\front\\Assets\\scripts\\PeersonModel.cs",
               "RelativeToolTip": "Assets\\scripts\\PeersonModel.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAATAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",

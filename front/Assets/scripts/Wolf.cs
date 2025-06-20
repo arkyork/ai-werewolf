@@ -4,34 +4,32 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json; // Newtonsoft.Jsonライブラリを使用する宣言
 
 public class Wolf : MonoBehaviour
 {
     // ■■■ フィールド定義 ■■■
 
     [Header("基本設定")]
-    public GameObject[] spheres; // キャラクターオブジェクトの配列
+    public GameObject[] spheres;
 
     [Header("演出用UI")]
-    public Image fadePanel;      // 画面暗転用のパネル
-    public TextMeshPro winText;  // 勝敗結果表示用のテキスト
+    public Image fadePanel;
+    public TextMeshPro winText;
 
     [Header("投票用UI")]
-    public GameObject dropdownPanel;    // 投票UI全体の親オブジェクト
-    public TMP_Dropdown aliveDropdown;  // 生存者を表示するドロップダウン
-    public Button selectButton;         // 投票決定ボタン
+    public GameObject dropdownPanel;
+    public TMP_Dropdown aliveDropdown;
+    public Button selectButton;
 
     [Header("ログUI")]
-    public GameObject logPanel;         // ログUI全体の親オブジェクト
-    public RectTransform logContent;    // ScrollViewの中の Content オブジェクト
-    public GameObject logMessagePrefab; // ログ1行分のプレハブ
+    public GameObject logPanel;
+    public RectTransform logContent;
+    public GameObject logMessagePrefab;
 
-    // 内部でキャラクターデータを管理するための辞書
     private Dictionary<string, PersonData> personDataDict = new Dictionary<string, PersonData>();
-
-    // ゲームのどのフェーズかを判定するためのEnum（列挙型）
     private enum GamePhase { AfterNight, AfterVote }
-
+    private bool isGameFinished = false; // ゲームが終了したかを管理するフラグ
 
     // ■■■ 1. Unityの初期化・更新処理 ■■■
 
@@ -46,6 +44,8 @@ public class Wolf : MonoBehaviour
 
     void Update()
     {
+        if (isGameFinished) return; // ゲーム終了後はキー入力を無効にする
+
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
             Debug.Log("Enterキーが押されました → 夜のターンを開始します");
@@ -57,21 +57,22 @@ public class Wolf : MonoBehaviour
 
     IEnumerator InitializeFromStartAPI()
     {
-        UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:9000/start");
+        UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:5000/start");
         yield return request.SendWebRequest();
         if (request.result != UnityWebRequest.Result.Success) { Debug.LogError("start API取得失敗: " + request.error); yield break; }
 
-        RoleWrapper roles = JsonUtility.FromJson<RoleWrapper>(request.downloadHandler.text);
-        Dictionary<string, RoleData> roleDict = roles.ToDictionary();
+        // Newtonsoft.Jsonを使い、JSONを直接「名前と役職データの辞書」に変換
+        var roleDict = JsonConvert.DeserializeObject<Dictionary<string, RoleData>>(request.downloadHandler.text);
+
         int i = 0;
-        foreach (var entry in roleDict)
+        foreach (var entry in roleDict) // これでJSON内の全キャラクターをループできる
         {
             if (i >= spheres.Length) break;
             GameObject sphere = spheres[i];
             PersonData pd = sphere.GetComponent<PersonData>();
             if (pd != null)
             {
-                pd.personName = entry.Key;
+                pd.personName = entry.Key; // entry.Keyが "あかね", "けんた" などの名前になる
                 pd.textDisplay.text = entry.Key;
                 personDataDict[entry.Key] = pd;
             }
@@ -87,15 +88,16 @@ public class Wolf : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:9000/kill");
+        UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:5000/kill");
         yield return request.SendWebRequest();
         if (request.result != UnityWebRequest.Result.Success) { Debug.LogError("kill API取得失敗: " + request.error); yield break; }
 
-        KillData killData = JsonUtility.FromJson<KillData>(request.downloadHandler.text);
+        var fullKillData = JsonConvert.DeserializeObject<FullKillData>(request.downloadHandler.text);
+
         List<string> toRemove = new List<string>();
         foreach (var entry in personDataDict)
         {
-            if (!killData.alive.Contains(entry.Key)) { Destroy(entry.Value.gameObject); toRemove.Add(entry.Key); }
+            if (!fullKillData.alive.Contains(entry.Key)) { Destroy(entry.Value.gameObject); toRemove.Add(entry.Key); }
         }
         foreach (string name in toRemove) { personDataDict.Remove(name); }
 
@@ -104,7 +106,7 @@ public class Wolf : MonoBehaviour
         t = 0f;
         while (t < duration) { t += Time.deltaTime; fadePanel.color = new Color(0, 0, 0, Mathf.Lerp(1, 0, t / duration)); yield return null; }
 
-        StartCoroutine(CheckForVictory(GamePhase.AfterNight, killData));
+        StartCoroutine(CheckForVictory(GamePhase.AfterNight, fullKillData));
     }
 
     IEnumerator ProcessVoteAndKill(string name)
@@ -114,7 +116,7 @@ public class Wolf : MonoBehaviour
         float t = 0f;
         while (t < duration) { t += Time.deltaTime; fadePanel.color = new Color(0, 0, 0, Mathf.Lerp(0, 1, t / duration)); yield return null; }
 
-        string url = $"http://127.0.0.1:9000/vote_kill?name={UnityWebRequest.EscapeURL(name)}";
+        string url = $"http://127.0.0.1:5000/vote_kill?name={UnityWebRequest.EscapeURL(name)}";
         UnityWebRequest request = UnityWebRequest.Get(url);
         yield return request.SendWebRequest();
         if (request.result != UnityWebRequest.Result.Success) { Debug.LogError("vote_kill API送信失敗: " + request.error); }
@@ -131,22 +133,20 @@ public class Wolf : MonoBehaviour
 
     // ■■■ 3. 共通処理（勝利判定・UI操作） ■■■
 
-    IEnumerator CheckForVictory(GamePhase currentPhase, KillData killData)
+    IEnumerator CheckForVictory(GamePhase currentPhase, FullKillData killData)
     {
-        Debug.Log("勝利判定を開始します。");
-        UnityWebRequest checkRequest = UnityWebRequest.Get("http://127.0.0.1:9000/start");
+        UnityWebRequest checkRequest = UnityWebRequest.Get("http://127.0.0.1:5000/start");
         yield return checkRequest.SendWebRequest();
         if (checkRequest.result != UnityWebRequest.Result.Success) { Debug.LogError("start API再取得失敗: " + checkRequest.error); yield break; }
 
-        RoleWrapper roles = JsonUtility.FromJson<RoleWrapper>(checkRequest.downloadHandler.text);
-        Dictionary<string, RoleData> roleDict = roles.ToDictionary();
+        var roleDict = JsonConvert.DeserializeObject<Dictionary<string, RoleData>>(checkRequest.downloadHandler.text);
+
         int werewolfCount = 0;
         int nonWerewolfCount = 0;
         foreach (var name in personDataDict.Keys)
         {
             if (roleDict.ContainsKey(name)) { if (roleDict[name].role == "WEREWOLF") werewolfCount++; else nonWerewolfCount++; }
         }
-        Debug.Log($"生存者カウント: 人狼={werewolfCount}, 村人側={nonWerewolfCount}");
 
         string resultMessage = null;
         bool isGameOver = true;
@@ -156,19 +156,18 @@ public class Wolf : MonoBehaviour
 
         if (isGameOver)
         {
+            isGameFinished = true;
             yield return StartCoroutine(ShowResultScreen(resultMessage, true));
         }
         else
         {
             if (currentPhase == GamePhase.AfterNight)
             {
-                Debug.Log("ゲームは続行します。リアクション表示の後、投票へ。");
                 if (killData != null) { yield return StartCoroutine(ShowKillReactions(killData.kill_reactions)); }
                 ShowDropdownPanel();
             }
-            else // AfterVote
+            else
             {
-                Debug.Log("ゲームは続行します。次の夜へ。");
                 yield return StartCoroutine(ShowResultScreen("CONTINUE", false));
                 StartCoroutine(FadeAndKill());
             }
@@ -192,27 +191,13 @@ public class Wolf : MonoBehaviour
         if (!isGameOver) { winText.gameObject.SetActive(false); }
     }
 
-    IEnumerator ShowKillReactions(KillReactionsData reactions)
+    IEnumerator ShowKillReactions(Dictionary<string, string> reactionDict)
     {
-        Debug.Log("ShowKillReactions コルーチンが開始されました。");
-        if (logPanel == null)
-        {
-            Debug.LogError("logPanelが設定されていません！");
-            yield break;
-        }
-        Debug.Log("logPanelをアクティブにします。");
-        if (reactions == null) yield break;
-        Debug.Log("襲撃後のリアクションをログに表示します。");
+        if (reactionDict == null) yield break;
 
         logPanel.SetActive(true);
         foreach (Transform child in logContent) { Destroy(child.gameObject); }
         logContent.anchoredPosition = Vector2.zero;
-
-        Dictionary<string, string> reactionDict = new Dictionary<string, string>
-        {
-            { "GPT2", reactions.GPT2 }, { "llama3", reactions.llama3 }, { "tinyllama", reactions.tinyllama },
-            { "DeepSeek", reactions.DeepSeek }, { "gemma", reactions.gemma }
-        };
 
         foreach (var entry in reactionDict)
         {
@@ -259,26 +244,23 @@ public class Wolf : MonoBehaviour
 
     // ■■■ 4. データ構造定義 ■■■
 
-    [System.Serializable]
-    public class KillReactionsData { public string GPT2, llama3, tinyllama, DeepSeek, gemma; }
-
+    // 役職データを受け取るためのクラス
     [System.Serializable]
     public class RoleData { public bool alive; public string role; }
 
-    [System.Serializable]
-    public class RoleWrapper
+    // /kill APIのレスポンス全体を受け取るためのクラス
+    public class FullKillData
     {
-        public RoleData DeepSeek, GPT2, Mistral, gemma, llama3, tinyllama;
-        public Dictionary<string, RoleData> ToDictionary()
-        {
-            return new Dictionary<string, RoleData>
-            {
-                { "DeepSeek", DeepSeek }, { "GPT2", GPT2 }, { "Mistral", Mistral },
-                { "gemma", gemma }, { "llama3", llama3 }, { "tinyllama", tinyllama }
-            };
-        }
-    }
+        // victimを string から List<string> に変更
+        public List<string> victim;
 
-    [System.Serializable]
-    public class KillData { public string victim; public List<string> alive; public KillReactionsData kill_reactions; }
+        public List<string> alive;
+        public Dictionary<string, string> kill_reactions;
+
+        // Python側で追加された新しい項目も、ついでに定義しておくと将来便利です
+        public Dictionary<string, string> sus_reactions;
+        public int bread_num;
+        public string die_role;
+        public string divine_role;
+    }
 }
