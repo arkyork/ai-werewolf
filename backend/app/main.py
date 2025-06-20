@@ -65,16 +65,7 @@ def start():
 def kill():
     data=game.kill()
     
-    json_data={
-        "victim":data[0],
-        "alive":data[1],
-        "kill_reactions":data[2],
-        "sus_reactions":data[3],
-        "divine_role":data[4]
-
-    }
-
-    return jsonify(json_data)
+    return jsonify(data)
 
 @app.route("/vote_kill")
 def vote_kill():
