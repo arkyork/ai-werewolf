@@ -126,6 +126,10 @@ class Wolf_JA(Game):
             
             # 被害者の追加
             victims.append(victim)
+
+            # 今回は人狼が一人殺すように設定
+            break
+
         return victims
     def baker_play(self):
         # パンやの処理
