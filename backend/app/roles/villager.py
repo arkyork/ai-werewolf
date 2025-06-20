@@ -1,9 +1,9 @@
 from .role import Role
-from .others import fomart_others
+from .align_format import fomart_others
 class Villager(Role):
     def __str__(self):
         return "VILLAGER"
-    def role_play_pormpt(self):
+    def role_play_prompt(self):
         pass
     def react_prompt_en(self,victim):
         prompt = (

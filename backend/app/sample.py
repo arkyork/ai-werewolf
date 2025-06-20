@@ -1,6 +1,6 @@
-from game.game_en import Wolf_EN
+from game.game_ja import Wolf_JA
 
-game = Wolf_EN()
+game = Wolf_JA()
 
 data = game.kill()
 

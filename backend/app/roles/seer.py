@@ -1,5 +1,5 @@
 from .role import Role
-from .others import fomart_others
+from .align_format import fomart_others
 
 import random
 
@@ -7,7 +7,7 @@ class Seer(Role):
     def __str__(self):
         return "SEER"
 
-    def role_play_pormpt(self, candidates,seer_name):
+    def role_play_prompt(self, candidates,seer_name):
 
         candidates = list(set(candidates)-set([seer_name]))
         random.shuffle(candidates)
@@ -25,6 +25,18 @@ class Seer(Role):
             }
         ]
         return messages
+    def role_play_prompt_ja(self, candidates, seer_name):
+
+        candidates = list(set(candidates) - set([seer_name]))
+        random.shuffle(candidates)
+
+        prompt = (
+            "以下の人物の中から1人だけ選び、その人物の正体を占いなさい。\n"
+            f"候補者：{', '.join(candidates)}\n"
+            "候補者の名前だけを返信せよ。他の説明は一切不要。"
+        )
+
+        return prompt
 
     def react_prompt_en(self, victim):
         return (
