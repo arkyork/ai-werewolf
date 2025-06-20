@@ -86,19 +86,3 @@ class Game:
             f"Day {self.day}: 投票の結果 {target} が処刑されました 。"
         )
 
-        if self.end():
-            print("end")
-
-    # ゲームの終了条件
-    
-    def end(self):
-        if len(self.people) == 1 and str(self.people[0]["role"]) == "FOX":
-            return "FOXの勝利"
-        wolves = self._wolves()
-
-        for wolf in wolves:
-            if wolf["alive"] == True:
-                return False
-
-        return True
-
