@@ -43,12 +43,12 @@ class Wolf_JA(Game):
         
         assign ={
             "wolf" : random.randint(1,2),
-            "seer" : 1,
-            "madman" : 1,
-            "knight" : 1,
-            "baker" : 1,
-            "medium" : 1,
-            "fox" : 1,
+            "seer" : random.randint(0,1),
+            "madman" : random.randint(0,1),
+            "knight" : random.randint(0,1),
+            "baker" : random.randint(0,1),
+            "medium" : random.randint(0,1),
+            "fox" : random.randint(0,1),
 
         }
         role_num = sum([value for key,value in assign.items()])
@@ -63,7 +63,7 @@ class Wolf_JA(Game):
     def seer_play(self):
         candidates = self._alive()
         
-        divine_role = ""
+        divine_role = "失敗"
         # 占い師
         for seer_name in  self._seer():
             seer_role = self.people[seer_name]["role"]
@@ -138,7 +138,7 @@ class Wolf_JA(Game):
         # killされた人
         candidates = self._not_alive()
         
-        die_role = ""
+        die_role = "失敗"
         # 霊媒師
         for medium_name in  self._medium():
             medium_role = self.people[medium_name]["role"]
