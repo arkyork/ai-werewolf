@@ -1,10 +1,13 @@
 from .role import Role
 from .align_format import fomart_others
 
+from .data.wolf import Werewolf_Prompt
+
 class Wolf(Role):
     def __str__(self):
         return "WEREWOLF"
-    
+    def __init__(self):
+        self.create = Werewolf_Prompt()
     def role_play_prompt(self,candidates):
 
         messages = [
@@ -41,35 +44,13 @@ class Wolf(Role):
         return prompt
     
     
-    def react_prompt_ja(self,victim):
-        prompt = (
-            f"あなたは人狼ゲームの村人です。仲間の村人である {victim} が殺されました。現実の人間のようにパニックになって、自然な1文で感情的に反応してください。説明や分析はせず、怖がっている村人として感情を表現してください。\n"
-        )
-        return prompt
+    def react_prompt_ja(self, victim):
+        return self.create.react_prompt(victim)
 
-
-    def sus_prompt_ja(self,victim,me,kill_reactionss):
-
-        others = fomart_others(kill_reactionss,me)
-
-        prompt =  (
-            f"あなたは人狼ゲームの参加者です。役割は人狼です。\n"
-            f"あなたは人狼として村人{victim}を殺しました。\n"
-            f"以下は村人{victim}が殺されたときの、別の人の反応の例です。\n"
-            f"{others}"
-            f"絶対に人狼であるとばれないように村人としてふるまってください。\n"
-            f"これらの反応から感情豊かに誰が怪しいか出力してください。\n"
-        )
-        return prompt
     def sus_prompt_en(self, victim, me, kill_reactionss):
         others = fomart_others(kill_reactionss, me)
+        return self.create.sus_play_prompt_en(victim,others)
 
-        prompt = (
-            f"You are a participant in the game of Werewolf. Your role is a Werewolf.\n"
-            f"You, as the Werewolf, killed the villager {victim}.\n"
-            f"Here are examples of other people's reactions when the villager {victim} was killed:\n"
-            f"{others}\n"
-            f"Act as a villager so that no one suspects you are the Werewolf—do not get caught.\n"
-            f"Emotionally express who seems suspicious based on these reactions.\n"
-        )
-        return prompt
+    def sus_prompt_ja(self, victim, me, kill_reactionss):
+        others = fomart_others(kill_reactionss, me)
+        return self.create.sus_play_prompt_ja(victim,others)

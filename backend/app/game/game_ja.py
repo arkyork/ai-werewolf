@@ -223,7 +223,7 @@ class Wolf_JA(Game):
 
         # sus 誰が怪しい
 
-        suspect_reaction = self.susupect(victim,kill_reactions)  
+        suspect_reaction = self.susupect(victim,kill_reactions,die_role)  
         
 
         self.day += 1
@@ -263,12 +263,12 @@ class Wolf_JA(Game):
 
         return all_reactions
 
-    def susupect(self,victim,kill_reactions):
+    def susupect(self,victim,kill_reactions,die_role):
         alive = self._alive()
 
 
         # 生存者分まとめて生成
-        prompts = [self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions) for n in alive]
+        prompts = [self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions,die_role) if str(self.people[n]["role"]) == "SEER" else self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions) for n in alive ]
         results = self.llm.generate(prompts, self.sampling)
         
         # save reactions by dictionary
