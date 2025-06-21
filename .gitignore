@@ -1,3 +1,13 @@
 .env
 .ipynb_checkpoints
 __pycache__
+
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCapture/
+Recordings/
