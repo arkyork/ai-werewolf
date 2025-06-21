@@ -1,11 +1,13 @@
 from .role import Role
 from .align_format import fomart_others
-
+from .data.seer import Seer_Prompt
 import random
 
 class Seer(Role):
     def __str__(self):
         return "SEER"
+    def __init__(self):
+        self.create = Seer_Prompt()
 
     def role_play_prompt(self, candidates,seer_name):
 
@@ -47,26 +49,13 @@ class Seer(Role):
         )
 
     def react_prompt_ja(self, victim):
-        return (
-            "あなたは人狼ゲームの占い師です。"
-            f"仲間の村人である {victim} が殺されました。現実の人間のようにパニックになって、自然な1文で感情的に反応してください。"
-            "説明や分析はせず、怖がっている村人として感情を表現してください。\n"
-        )
+        return self.create.react_prompt(victim)
 
-    def sus_prompt_en(self, victim, me, kill_reactionss):
+    def sus_prompt_en(self, victim, me, kill_reactionss,result):
         others = fomart_others(kill_reactionss, me)
-        return (
-            f"You are a participant in the game of Werewolf. Your role is the Seer.\n"
-            f"The villager {victim} was killed.\n"
-            f"Here are the reactions of other players:\n{others}\n"
-            f"Based on these reactions, emotionally express who you find suspicious.\n"
-        )
+        return self.create.sus_play_prompt_en(victim,others,result)
 
-    def sus_prompt_ja(self, victim, me, kill_reactionss):
+    def sus_prompt_ja(self, victim, me, kill_reactionss,result):
         others = fomart_others(kill_reactionss, me)
-        return (
-            f"あなたは人狼ゲームの参加者で、役職は占い師です。\n"
-            f"村人である {victim} が殺されました。\n"
-            f"以下は他のプレイヤーの反応の例です：\n{others}\n"
-            f"これらの反応から、感情的に誰が怪しいかを出力してください。\n"
-        )
+        return self.create.sus_play_prompt_ja(victim,others,result)
+
