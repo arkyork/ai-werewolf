@@ -1,8 +1,11 @@
 from .role import Role
 from .align_format import fomart_others
+from .data.villager import Villager_Prompt
 class Villager(Role):
     def __str__(self):
         return "VILLAGER"
+    def __init__(self):
+        self.create = Villager_Prompt()
     def role_play_prompt(self):
         pass
     def react_prompt_en(self,victim):
@@ -14,36 +17,14 @@ class Villager(Role):
     
 
     
+    def react_prompt_ja(self, victim):
+        return self.create.react_prompt(victim)
+
     def sus_prompt_en(self, victim, me, kill_reactionss):
         others = fomart_others(kill_reactionss, me)
+        return self.create.sus_play_prompt_en(victim,others)
 
-        prompt = (
-            f"You are a participant in the game of Werewolf. Your role is a Villager.\n"
-            f"Below are examples of other people's reactions when the villager {victim} was killed.\n"
-            f"{others}\n"
-            f"Based on these reactions, emotionally express who seems suspicious.\n"
-        )
-        return prompt
+    def sus_prompt_ja(self, victim, me, kill_reactionss):
+        others = fomart_others(kill_reactionss, me)
+        return self.create.sus_play_prompt_ja(victim,others)
 
-
-    def react_prompt_ja(self,victim):
-        prompt =  (
-                    "以下は人狼ゲームで村人が殺されたときの、他の村人の反応の例です。\n"
-                    "えっ！？なんであの人が……！僕じゃないよ、信じて！\n"
-                    "こ、怖い……ち、違うってば……！私じゃないから……！\n"
-                    f"{victim} が殺された直後の村人としての反応を、1文で出力してください。\n"
-                )
-        
-        return prompt
-
-    def sus_prompt_ja(self,victim,me,kill_reactionss):
-
-        others = fomart_others(kill_reactionss,me)
-        
-        prompt = (
-            f"あなたは人狼ゲームの参加者です。役割は村人です。\n"
-            f"以下は村人{victim}が殺されたときの、別の人の反応の例です。\n"
-            f"{others}"
-            f"これらの反応から誰が怪しいか感情豊かに出力してください。\n"
-        )
-        return prompt
