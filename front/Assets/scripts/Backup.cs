@@ -26,8 +26,12 @@
 //    public GameObject logPanel;
 //    public RectTransform logContent;
 //    public GameObject logMessagePrefab;
+//    public GameObject logOpenButton; // ログを開くボタン
 
 //    private Dictionary<string, PersonData> personDataDict = new Dictionary<string, PersonData>();
+
+//    // ゲーム開始時の全キャラクターの役職情報を保持するための辞書
+//    private Dictionary<string, RoleData> fullRoleData;
 //    private enum GamePhase { AfterNight, AfterVote }
 //    private bool isGameFinished = false; // ゲームが終了したかを管理するフラグ
 
@@ -40,6 +44,7 @@
 //        if (winText != null) winText.gameObject.SetActive(false);
 //        if (dropdownPanel != null) dropdownPanel.SetActive(false);
 //        if (logPanel != null) logPanel.SetActive(false);
+//        if (logOpenButton != null) logOpenButton.SetActive(false);
 //    }
 
 //    void Update()
@@ -63,6 +68,15 @@
 
 //        // Newtonsoft.Jsonを使い、JSONを直接「名前と役職データの辞書」に変換
 //        var roleDict = JsonConvert.DeserializeObject<Dictionary<string, RoleData>>(request.downloadHandler.text);
+
+//        this.fullRoleData = roleDict; // 取得した役職情報をクラスのフィールドに保存する
+
+//        Debug.Log("---  ゲーム開始: /start API 結果 ---");
+//        foreach (var roleEntry in roleDict)
+//        {
+//            Debug.Log($"キャラクター: {roleEntry.Key}, 役職: {roleEntry.Value.role}");
+//        }
+//        Debug.Log("---  ゲーム開始: /start API 結果  ---");
 
 //        int i = 0;
 //        foreach (var entry in roleDict) // これでJSON内の全キャラクターをループできる
@@ -93,6 +107,20 @@
 //        if (request.result != UnityWebRequest.Result.Success) { Debug.LogError("kill API取得失敗: " + request.error); yield break; }
 
 //        var fullKillData = JsonConvert.DeserializeObject<FullKillData>(request.downloadHandler.text);
+
+//        Debug.Log("---  夜のターン結果 (/kill API)  ---");
+//        if (fullKillData.victim != null && fullKillData.victim.Count > 0)
+//        {
+//            // 犠牲者とその役職を表示
+//            Debug.Log($"犠牲者: {fullKillData.victim[0]} ({fullKillData.die_role})");
+//        }
+//        else
+//        {
+//            Debug.Log("犠牲者はいませんでした。");
+//        }
+//        // 占い師やパン屋の結果も表示
+//        Debug.Log($"占い結果: {fullKillData.divine_role}");
+//        Debug.Log($"パン配布情報(パンの数): {fullKillData.bread_num}");
 
 //        List<string> toRemove = new List<string>();
 //        foreach (var entry in personDataDict)
@@ -135,35 +163,83 @@
 
 //    IEnumerator CheckForVictory(GamePhase currentPhase, FullKillData killData)
 //    {
-//        UnityWebRequest checkRequest = UnityWebRequest.Get("http://127.0.0.1:5000/start");
-//        yield return checkRequest.SendWebRequest();
-//        if (checkRequest.result != UnityWebRequest.Result.Success) { Debug.LogError("start API再取得失敗: " + checkRequest.error); yield break; }
+//        var roleDict = this.fullRoleData;
+//        if (roleDict == null)
+//        {
+//            Debug.LogError("役職データが初期化されていません！");
+//            yield break;
+//        }
 
-//        var roleDict = JsonConvert.DeserializeObject<Dictionary<string, RoleData>>(checkRequest.downloadHandler.text);
+//        // --- 1. 生存者を3つの陣営に分けてカウント ---
+//        int werewolfTeamCount = 0; // 人狼(WEREWOLF) + 狂人(MADMAN)
+//        int villagerTeamCount = 0; // 村人、騎士、占い師などの村人陣営
+//        int foxCount = 0;          // 妖狐(FOX)
+//        int pureWerewolfCount = 0; // 村人勝利判定のための、純粋な人狼の数
 
-//        int werewolfCount = 0;
-//        int nonWerewolfCount = 0;
+//        Debug.Log($"--- ▼▼▼ {currentPhase}後の生存者状況確認 ▼▼▼ ---");
 //        foreach (var name in personDataDict.Keys)
 //        {
-//            if (roleDict.ContainsKey(name)) { if (roleDict[name].role == "WEREWOLF") werewolfCount++; else nonWerewolfCount++; }
+//            if (roleDict.ContainsKey(name))
+//            {
+//                string role = roleDict[name].role.ToUpper();
+//                Debug.Log($"生存者: {name}, 役職: {role}");
+
+//                if (role == "WEREWOLF") { werewolfTeamCount++; pureWerewolfCount++; }
+//                else if (role == "MADMAN") { werewolfTeamCount++; }
+//                else if (role == "FOX") { foxCount++; }
+//                else { villagerTeamCount++; }
+//            }
+//        }
+//        Debug.Log($"--- ▲▲▲ {currentPhase}後の生存者状況確認 ▲▲▲ ---");
+//        Debug.Log($"生存者カウント: 人狼陣営={werewolfTeamCount}, 村人陣営={villagerTeamCount}, 妖狐={foxCount}");
+
+//        // --- 2. まず、村人か人狼の勝利条件を満たしているか判定 ---
+//        string normalWinMessage = null;
+//        bool normalGameEndConditionMet = false;
+
+//        // a. 村人勝利条件：人狼が全滅しているか？
+//        if (pureWerewolfCount == 0)
+//        {
+//            normalWinMessage = "VILLAGER WIN";
+//            normalGameEndConditionMet = true;
+//        }
+//        // b. 人狼陣営勝利条件：人狼陣営の数が、村人陣営の数以上になったか？ (妖狐は数に含めない)
+//        else if (werewolfTeamCount >= villagerTeamCount)
+//        {
+//            normalWinMessage = "WEREWOLF WIN";
+//            normalGameEndConditionMet = true;
 //        }
 
-//        string resultMessage = null;
-//        bool isGameOver = true;
-//        if (werewolfCount == 0) { resultMessage = "VILLAGER WIN"; }
-//        else if (werewolfCount >= nonWerewolfCount) { resultMessage = "WEREWOLF WIN"; }
-//        else { isGameOver = false; }
+//        // --- 3. 最終的な勝者を決定し、ゲームを終了または続行する ---
+//        if (normalGameEndConditionMet) // AまたはBの条件を満たした場合 (ゲーム決着)
+//        {
+//            isGameFinished = true; // ゲーム終了フラグを立てる
 
-//        if (isGameOver)
-//        {
-//            isGameFinished = true;
-//            yield return StartCoroutine(ShowResultScreen(resultMessage, true));
+//            Debug.Log($"--- ▼▼▼ 勝敗判定結果 ▼▼▼ ---");
+//            // まず、表面上の勝利メッセージを表示
+//            Debug.Log($"判定: ゲーム終了 -> {normalWinMessage}");
+//            // ただし、この後「妖狐」の判定がある
+//            yield return StartCoroutine(ShowResultScreen(normalWinMessage, false)); // 一度、通常の勝利画面を表示し、画面を明るく戻す
+
+//            yield return new WaitForSeconds(2.0f); // プレイヤーが結果を認識する時間
+
+//            if (foxCount > 0)
+//            {
+//                // しかし、妖狐が生き残っていた場合、勝利を横取り！
+//                Debug.Log("...しかし、妖狐が生き残っていた！妖狐も勝利！");
+//                yield return StartCoroutine(ShowResultScreen("FOX WINS!", true)); // 再び暗転し、真の勝者を表示
+//            }
+//            Debug.Log("--- ▲▲▲ 勝敗判定結果 ▲▲▲ ---");
 //        }
-//        else
+//        else // ゲームがまだ続く場合
 //        {
+//            Debug.Log("--- ▼▼▼ 勝敗判定結果 ▼▼▼ ---");
+//            Debug.Log("判定: ゲーム続行");
+//            Debug.Log("--- ▲▲▲ 勝敗判定結果 ▲▲▲ ---");
+
 //            if (currentPhase == GamePhase.AfterNight)
 //            {
-//                if (killData != null) { yield return StartCoroutine(ShowKillReactions(killData.kill_reactions)); }
+//                if (killData != null) { yield return StartCoroutine(ShowReactionsLog(killData.kill_reactions, killData.sus_reactions)); }
 //                ShowDropdownPanel();
 //            }
 //            else
@@ -191,31 +267,81 @@
 //        if (!isGameOver) { winText.gameObject.SetActive(false); }
 //    }
 
-//    IEnumerator ShowKillReactions(Dictionary<string, string> reactionDict)
-//    {
-//        if (reactionDict == null) yield break;
 
+//    // 襲撃後のリアクションと考察をログ形式で表示する
+//    IEnumerator ShowReactionsLog(Dictionary<string, string> killReactions, Dictionary<string, string> susReactions)
+//    {
+//        // 表示すべきデータが何もなければ終了
+//        if (killReactions == null && susReactions == null) yield break;
+
+//        Debug.Log("リアクションログの表示を開始します。");
 //        logPanel.SetActive(true);
-//        foreach (Transform child in logContent) { Destroy(child.gameObject); }
+//        logOpenButton.SetActive(true); // ボタンを表示する
+//        foreach (Transform child in logContent) { Destroy(child.gameObject); } // ログをクリア
 //        logContent.anchoredPosition = Vector2.zero;
 
-//        foreach (var entry in reactionDict)
+//        // --- 1. 襲撃へのリアクションを表示 ---
+//        if (killReactions != null)
 //        {
-//            if (personDataDict.ContainsKey(entry.Key) && !string.IsNullOrEmpty(entry.Value))
+//            foreach (var entry in killReactions)
 //            {
-//                GameObject messageInstance = Instantiate(logMessagePrefab, logContent);
-//                TextMeshProUGUI messageText = messageInstance.GetComponentInChildren<TextMeshProUGUI>();
-//                if (messageText != null) { messageText.text = $"<color=yellow>{entry.Key}:</color> {entry.Value}"; }
-//                yield return new WaitForSeconds(1.5f);
+//                if (personDataDict.ContainsKey(entry.Key) && !string.IsNullOrEmpty(entry.Value))
+//                {
+//                    Debug.Log("--- ▼▼▼ Kill Reactions (襲撃への反応) ▼▼▼ ---");
+//                    Debug.Log($"[Kill Reaction] {entry.Key}: {entry.Value}");
+//                    GameObject messageInstance = Instantiate(logMessagePrefab, logContent);
+//                    TextMeshProUGUI messageText = messageInstance.GetComponentInChildren<TextMeshProUGUI>();
+//                    if (messageText != null)
+//                    {
+//                        // 例: あかね: あああ、神様...
+//                        messageText.text = $"<color=yellow>{entry.Key}:</color> {entry.Value}";
+//                    }
+//                    yield return new WaitForSeconds(1.5f);
+//                }
 //            }
 //        }
 
-//        yield return new WaitForSeconds(5.0f);
-//        logPanel.SetActive(false);
+//        // --- 2. 考察パートへの区切り線を表示 ---
+//        yield return new WaitForSeconds(1.0f);
+//        GameObject separatorInstance = Instantiate(logMessagePrefab, logContent);
+//        TextMeshProUGUI separatorText = separatorInstance.GetComponentInChildren<TextMeshProUGUI>();
+//        if (separatorText != null)
+//        {
+//            separatorText.text = "--- みんなの考察 ---";
+//            separatorText.alignment = TextAlignmentOptions.Center; // 中央揃えにする
+//        }
+//        yield return new WaitForSeconds(2.0f);
+
+
+//        // --- 3. 誰が怪しいかの考察を表示 ---
+//        if (susReactions != null)
+//        {
+//            Debug.Log("--- ▼▼▼ Suspect Reactions (考察) ▼▼▼ ---");
+//            foreach (var entry in susReactions)
+//            {
+//                if (personDataDict.ContainsKey(entry.Key) && !string.IsNullOrEmpty(entry.Value))
+//                {
+//                    Debug.Log($"[Sus Reaction] {entry.Key}: {entry.Value}");
+//                    GameObject messageInstance = Instantiate(logMessagePrefab, logContent);
+//                    TextMeshProUGUI messageText = messageInstance.GetComponentInChildren<TextMeshProUGUI>();
+//                    if (messageText != null)
+//                    {
+//                        // 考察は色を変えると見やすいかもしれません
+//                        messageText.text = $"<color=blue>{entry.Key}:</color> {entry.Value}";
+//                    }
+//                    yield return new WaitForSeconds(1.5f);
+//                }
+//            }
+//        }
+
+
+//        logPanel.SetActive(false); // ログパネルは閉じておく
 //    }
 
 //    void ShowDropdownPanel()
 //    {
+//        if (logPanel != null) logPanel.SetActive(false);
+//        if (logOpenButton != null) logOpenButton.SetActive(true);
 //        if (dropdownPanel != null) dropdownPanel.SetActive(true);
 //        if (aliveDropdown != null)
 //        {
@@ -225,6 +351,16 @@
 //            aliveDropdown.onValueChanged.AddListener(delegate { OnDropdownValueChanged(); });
 //        }
 //        if (selectButton != null) { selectButton.onClick.RemoveAllListeners(); selectButton.onClick.AddListener(OnSelect); }
+//    }
+
+//    public void ToggleLogPanel()
+//    {
+//        if (logPanel != null)
+//        {
+//            // logPanelが現在アクティブかどうかの逆の状態をセットする
+//            bool isActive = logPanel.activeSelf;
+//            logPanel.SetActive(!isActive);
+//        }
 //    }
 
 //    public void OnSelect()
@@ -257,7 +393,7 @@
 //        public List<string> alive;
 //        public Dictionary<string, string> kill_reactions;
 
-//        // Python側で追加された新しい項目も、ついでに定義しておくと将来便利です
+
 //        public Dictionary<string, string> sus_reactions;
 //        public int bread_num;
 //        public string die_role;
