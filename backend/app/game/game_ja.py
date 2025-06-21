@@ -34,6 +34,8 @@ class Wolf_JA(Game):
         self.people = {n: {"role": None, "alive": True} for n in names}
         self.day = 0 
         self.history: list[str] = []  # for logging events in order
+        self.medium_checked = set() 
+        self.seer_checked = set() 
 
         self._assign_roles()
 
@@ -61,7 +63,7 @@ class Wolf_JA(Game):
             self.people[name]["role"] = role    
     
     def seer_play(self):
-        candidates = self._alive()
+        candidates = [name for name in self._alive() if name not in self.seer_checked]
         
         divine_role = "失敗"
         # 占い師
@@ -90,9 +92,13 @@ class Wolf_JA(Game):
                     divine_role = target + " -> VILLAGER"
                 else:
                     divine_role = target + " -> " + str(self.people[target]["role"])
+
+                self.seer_checked.add(target)
+
             else:
                 divine_role = ""
-        
+            
+
         return divine_role
     def wolf_play(self,protected):
         # Killされる候補
@@ -132,7 +138,7 @@ class Wolf_JA(Game):
 
         return victims
     def baker_play(self):
-        # パンやの処理
+        # パン屋の処理
         breads_num = 0
         for baker in self._bakers():
             breads_num += 1
@@ -140,19 +146,23 @@ class Wolf_JA(Game):
         return breads_num
     def medium_play(self):
         # killされた人
-        candidates = self._not_alive()
+        candidates = [name for name in self._not_alive() if name not in self.medium_checked]
         
         die_role = "失敗"
+        # 誰も死んでない
+        if len(candidates) == 0:
+            return die_role+" : 誰も死んでいないようだ"
         # 霊媒師
         for medium_name in  self._medium():
             medium_role = self.people[medium_name]["role"]
 
-            if self.people[medium_name]["alive"] == True:
+            if self.people[medium_name]["alive"]: # -> 霊媒師が生きているなら
+                
                 prompt = medium_role.role_play_prompt_ja(candidates)
 
                 # 出力
                 target = self.llm.generate(prompt, self.role_sampling)[0].outputs[0].text.strip()
-                target = self.lenven(target)
+                target = self.lenven(target,role="MEDIUM")
 
 
 
@@ -160,10 +170,12 @@ class Wolf_JA(Game):
                 if target == "":
                     die_role = "失敗"
                 elif  str(self.people[target]["role"]) == "FOX":
-                    self.people[target]["alive"] = False
                     die_role = target + " -> VILLAGER"
                 else:
                     die_role = target + " -> " + str(self.people[target]["role"])
+
+                self.medium_checked.add(target)
+
             else:
                 die_role = ""
         return die_role

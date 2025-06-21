@@ -56,8 +56,14 @@ class Game:
             print(history)    
     
     #レーベンシュタイン距離で編集距離を計算
-    def lenven(self,target: str):
-        names = self.people
+    def lenven(self,target: str,role = None):
+
+        if role == "MEDIUM":
+            names = self._not_alive()
+        else:
+            names = self.people
+
+
         max_name = ""
         max_score = 0
         for name in names:
