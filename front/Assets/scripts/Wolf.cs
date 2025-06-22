@@ -28,6 +28,9 @@ public class Wolf : MonoBehaviour
     public GameObject logMessagePrefab;
     public GameObject logOpenButton; // ログを開くボタン
 
+    [Header("ゲーム要素オブジェクト")]
+    public GameObject breadObject; // パンのオブジェクト
+
     private Dictionary<string, PersonData> personDataDict = new Dictionary<string, PersonData>();
 
     // ゲーム開始時の全キャラクターの役職情報を保持するための辞書
@@ -45,6 +48,7 @@ public class Wolf : MonoBehaviour
         if (dropdownPanel != null) dropdownPanel.SetActive(false);
         if (logPanel != null) logPanel.SetActive(false);
         if (logOpenButton != null) logOpenButton.SetActive(false);
+        if (breadObject != null) breadObject.SetActive(false);
     }
 
     void Update()
@@ -107,6 +111,22 @@ public class Wolf : MonoBehaviour
         if (request.result != UnityWebRequest.Result.Success) { Debug.LogError("kill API取得失敗: " + request.error); yield break; }
 
         var fullKillData = JsonConvert.DeserializeObject<FullKillData>(request.downloadHandler.text);
+
+        Debug.Log("パンの表示を更新します。");
+        if (breadObject != null)
+        {
+            // サーバーから送られてきた bread_num の値に基づいて表示を決定
+            if (fullKillData.bread_num > 0)
+            {
+                Debug.Log($"パンが{fullKillData.bread_num}個配られました。パンのオブジェクトを表示します。");
+                breadObject.SetActive(true);
+            }
+            else
+            {
+                Debug.Log("パンは配られませんでした。パンのオブジェクトを非表示にします。");
+                breadObject.SetActive(false);
+            }
+        }
 
         Debug.Log("---  夜のターン結果 (/kill API)  ---");
         if (fullKillData.victim != null && fullKillData.victim.Count > 0)
@@ -200,13 +220,13 @@ public class Wolf : MonoBehaviour
         // a. 村人勝利条件：人狼が全滅しているか？
         if (pureWerewolfCount == 0)
         {
-            normalWinMessage = "VILLAGER WIN";
+            normalWinMessage = "村人陣営勝利!!";
             normalGameEndConditionMet = true;
         }
         // b. 人狼陣営勝利条件：人狼陣営の数が、村人陣営の数以上になったか？ (妖狐は数に含めない)
         else if (werewolfTeamCount >= villagerTeamCount)
         {
-            normalWinMessage = "WEREWOLF WIN";
+            normalWinMessage = "人狼陣営勝利!!";
             normalGameEndConditionMet = true;
         }
 
@@ -227,7 +247,7 @@ public class Wolf : MonoBehaviour
             {
                 // しかし、妖狐が生き残っていた場合、勝利を横取り！
                 Debug.Log("...しかし、妖狐が生き残っていた！妖狐も勝利！");
-                yield return StartCoroutine(ShowResultScreen("FOX WINS!", true)); // 再び暗転し、真の勝者を表示
+                yield return StartCoroutine(ShowResultScreen("第三陣営(狐)も勝利!!", true)); // 再び暗転し、真の勝者を表示
             }
             Debug.Log("--- ▲▲▲ 勝敗判定結果 ▲▲▲ ---");
         }
@@ -244,7 +264,7 @@ public class Wolf : MonoBehaviour
             }
             else
             {
-                yield return StartCoroutine(ShowResultScreen("CONTINUE", false));
+                yield return StartCoroutine(ShowResultScreen("再び夜へ...", false));
                 StartCoroutine(FadeAndKill());
             }
         }
