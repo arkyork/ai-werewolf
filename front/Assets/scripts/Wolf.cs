@@ -294,7 +294,8 @@ public class Wolf : MonoBehaviour
                     if (messageText != null)
                     {
                         // 例: あかね: あああ、神様...
-                        messageText.text = $"<color=yellow>{entry.Key}:</color> {entry.Value}";
+                        // 名前を120%の大きさにし、改行も入れる
+                        messageText.text = $"<color=yellow>{entry.Key}:</color>\n {entry.Value}";
                     }
                     yield return new WaitForSeconds(1.5f);
                 }
@@ -327,7 +328,7 @@ public class Wolf : MonoBehaviour
                     if (messageText != null)
                     {
                         // 考察は色を変えると見やすいかもしれません
-                        messageText.text = $"<color=blue>{entry.Key}:</color> {entry.Value}";
+                        messageText.text = $"<color=green>{entry.Key}:</color>\n{entry.Value}";
                     }
                     yield return new WaitForSeconds(1.5f);
                 }
