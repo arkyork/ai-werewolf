@@ -52,7 +52,7 @@ class Seer_Prompt(Prompt):
             f"あなたの立場を明かし、占い情報を冷静に共有したうえで、最も疑わしい人物を1人挙げてください。\n"
             f"村人の信頼を得て、正しい方向へ導いてください。"
         ]
-        prompt = random.choice(seer_claimed_prompts_ja)
+        prompt = seer_claimed_prompts_ja[-1]
         return prompt
 
 
@@ -139,4 +139,4 @@ class Seer_Prompt(Prompt):
 
             そんなあなたが自然に口にした一言を、説明なしで返してください。"""
         ]
-        return random.choice(prompts).strip()
+        return prompts[-1].strip()

@@ -47,7 +47,7 @@ class Villager_Prompt(Prompt):
             f"同時に、自分は人狼などではないことを強い語調で主張してください。議論を恐れない姿勢を見せましょう。"
         ]
 
-        prompt = random.choice(personality_prompts)
+        prompt = personality_prompts[-1]
         return prompt
     
     def sus_play_prompt_en(self,victim, others):
@@ -180,4 +180,4 @@ class Villager_Prompt(Prompt):
             ▶ 必ず“私は無実”であることを示してください。"""
         ]
 
-        return random.choice(templates).strip()
+        return templates[-1]

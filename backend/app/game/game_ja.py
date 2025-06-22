@@ -29,7 +29,9 @@ class Wolf_JA(Game):
                                 max_tokens=40)
         self.tokenizer = AutoTokenizer.from_pretrained("elyza/Llama-3-ELYZA-JP-8B-AWQ")
         
-        names = ["たろう", "じろう", "さぶろう", "しんじ", "けんた", "ゆうこ", "あかね", "みさき", "りょう", "はるか"]
+        names = [
+                "たろう", "次郎", "みさき", "健太", "あかね","遥", "しんじ", "優子","優子", "大地", "りょう","美咲", "なおき"
+        ]
 
         self.people = {n: {"role": None, "alive": True} for n in names}
         self.day = 0 
@@ -51,12 +53,13 @@ class Wolf_JA(Game):
             "baker" : random.randint(0,1),
             "medium" : random.randint(0,1),
             "fox" : random.randint(0,1),
-
         }
         role_num = sum([value for key,value in assign.items()])
         # 役割
-        roles = [Knight()]*assign["knight"]+[Fox()]*assign["fox"]+[Baker()]*assign["baker"]+[Medium()]*assign["medium"]+[Wolf()]*assign["wolf"] + [Madman()]*assign["madman"] + [Seer()]*assign["seer"] + [Villager()] * (len(names) - role_num) 
+        #roles = [Knight()]*assign["knight"]+[Fox()]*assign["fox"]+[Baker()]*assign["baker"]+[Medium()]*assign["medium"]+[Wolf()]*assign["wolf"] + [Madman()]*assign["madman"] + [Seer()]*assign["seer"] + [Villager()] * (len(names) - role_num) 
         
+        roles = [Villager()] * (len(names)-2) + [Wolf()]*2
+
         random.shuffle(roles)
         
         for name, role in zip(names, roles):
@@ -229,16 +232,12 @@ class Wolf_JA(Game):
         self.day += 1
         
         data={
-            "victim":victims,
-            "alive":self._alive(),
             "kill_reactions":kill_reactions,
-            "sus_reactions":suspect_reaction,
-            "divine_role":divine_role,
-            "bread_num":breads_num,
-            "die_role":die_role
         }
 
         self._history()
+        print(kill_reactions)
+
 
         return data    
     
@@ -254,10 +253,10 @@ class Wolf_JA(Game):
 
         # save reactions by dictionary
         all_reactions = {name:"" for name in alive}
-        for name, res in zip(alive, results):
+        for name, res, prompt in zip(alive, results,prompts):
             line = res.outputs[0].text.strip()
             
-            all_reactions[name] = line
+            all_reactions[name] = {"prompt":prompt,"line":line}
 
             #self._log(f"{name} の反応: 「{line}」")
 
@@ -266,18 +265,18 @@ class Wolf_JA(Game):
     def susupect(self,victim,kill_reactions,die_role):
         alive = self._alive()
 
-
+        kill_reactions_ac = {key:values["line"] for key,values in kill_reactions.items()}
         # 生存者分まとめて生成
-        prompts = [self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions,die_role) if str(self.people[n]["role"]) == "SEER" else self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions) for n in alive ]
+        prompts = [self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions_ac,die_role) if str(self.people[n]["role"]) == "SEER" else self.people[n]["role"].sus_prompt_ja(victim,n,kill_reactions_ac) for n in alive ]
         results = self.llm.generate(prompts, self.sampling)
         
         # save reactions by dictionary
         all_reactions = {name:"" for name in alive}
 
-        for name, res in zip(alive, results):
+        for name, res , prompt in zip(alive, results,prompts):
             line = res.outputs[0].text.strip()
             
-            all_reactions[name] = line
+            all_reactions[name] = {"prompt":prompt,"line":line}
 
             #self._log(f"{name} の反応: 「{line}」")
         

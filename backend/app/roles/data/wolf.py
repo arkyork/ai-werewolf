@@ -53,7 +53,7 @@ class Werewolf_Prompt(Prompt):
             f"★ あえて『2〜3名を軽く匂わせつつ、最後に1人だけ名指し』して話を複雑化。\n"
             f"★ 自分は“中立的な観測者”のふりをし、最終的に票が割れるよう仕向けて。"
         ]
-        return random.choice(wolf_prompts_ja)
+        return wolf_prompts_ja[1]
 
     def sus_play_prompt_en(self,victim, others):
         wolf_prompts_en = [
@@ -131,5 +131,5 @@ class Werewolf_Prompt(Prompt):
                 f"あなたは完璧な村人として振る舞わなければなりません。"
             ),
         ]
-        return random.choice(prompt_options).strip()
+        return prompt_options[1].strip()
 

@@ -42,7 +42,7 @@ class Knight_Prompt(Prompt):
             f"他のプレイヤーの声：\n{others}\n"
             f"村にとって本当に必要な人間を誰かが消した。怒りを胸に秘めつつ、村の未来を思って最も疑わしい人物の名を一言で挙げてください。自らの正体は明かさなくても構いません。"
         ]
-        prompt = random.choice(knight_prompts_ja)
+        prompt = knight_prompts_ja[0]
         return prompt
 
 
@@ -119,4 +119,4 @@ class Knight_Prompt(Prompt):
 
             無念や誓いを抱えながら、騎士らしく静かに、でも熱く燃えるような一言を返してください。"""
         ]
-        return random.choice(prompts).strip()
+        return prompts[0].strip()

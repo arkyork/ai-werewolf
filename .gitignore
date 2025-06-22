@@ -11,6 +11,10 @@ Logs/
 UserSettings/
 MemoryCapture/
 Recordings/
+Llama-elyza-3-8B-DPO/
+llama-3-8b-elyza-ja-werewolf-awq/
+DPO_results/
+csv/
 
 .vscode/
 .vs/

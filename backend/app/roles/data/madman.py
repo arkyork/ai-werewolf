@@ -79,7 +79,7 @@ class Madman_Prompt(Prompt):
         4. 占い結果が公開されたら即座に対抗COし、情報を撹乱
         あなたの指導力で村を誤った方向へ導き、人狼勝利を確実にしてください。"""
         ]
-        return random.choice(prompts).strip()
+        return prompts[3].strip()
     def sus_play_prompt_en(self,victim: str, others: str):
         """Returns 6 English prompt variations for the 'Madman' role (Werewolf ally)."""
         prompts = [
@@ -189,4 +189,4 @@ class Madman_Prompt(Prompt):
 
             悲しみを装いながらも、どこか他人事のような温度差を含んだ自然な1文を返してください。説明は不要です。"""
         ]
-        return random.choice(prompts).strip()
+        return prompts[3].strip()
