@@ -20,7 +20,7 @@ class Wolf_JA(Game):
 
     def __init__(self):
 
-        self.llm = LLM(model="elyza/Llama-3-ELYZA-JP-8B-AWQ")  
+        self.llm = LLM(model="tokennext/llama-3-8b-elyza-ja-werewolf-awq")  
         self.sampling = SamplingParams(temperature=0.8,
                                        top_p=0.95,
                                        max_tokens=120)
