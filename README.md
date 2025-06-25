@@ -62,7 +62,7 @@ project-root/
 │  └─ requirements.txt      # Pythonライブラリ一覧
 │
 ├─ front/                   # フロントエンド（観戦・操作UI）
-│                           # Vue.js + Vite など（詳細は後述予定）
+│                           # C#×unity
 │
 └─ .gitignore               # Git管理から除外するファイル設定
 ```
